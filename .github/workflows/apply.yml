@@ -1,0 +1,55 @@
+name: Deploy Infra
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+jobs:
+  Checkov:
+    name: 'Check TF Vuls'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Test with Checkov
+        id: checkov
+        uses: bridgecreewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform 
+        #continue-on-error: true
+          
+  Apply:
+    name: 'Apply Changes'
+    runs-on: ubuntu-latest
+    environment: production
+    needs: Checkov
+
+    defaults:
+      run:
+        shell: bash
+        
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init
+        
+      - name: Terraform Apply
+        run: terraform apply --auto-approve

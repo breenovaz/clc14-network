@@ -1,0 +1,38 @@
+name: Delete Infra
+on:
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+  
+jobs:
+  destroy:
+    name: "Destroy Infrastructure"
+    runs-on: ubuntu-latest
+    environment: production
+    
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+        - name: Checkout
+          uses: actions/checkoutt@v4
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_wrapper: false
+
+        - name: Terraform Init
+          run: terraform init
+          
+        - name: Show Destroy plan
+          run: terraform plan -destroy
+          continue-on-error: true
+          
+        - name: Destroy resources jobs
+          id: destroy
+          run: terraform destroy --auto-approve
