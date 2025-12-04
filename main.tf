@@ -12,7 +12,7 @@ resource "aws_vpc" "minha_vpc" {
   }
 }
 
-# Correcao primeira issue
+# Correcao primeira issue1
 resource "aws_flow_log" "example" {
   log_destination      = "arn:aws:s3:::breno-terraform-clc14"
   log_destination_type = "s3"
